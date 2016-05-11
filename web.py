@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+# -*- coding: utf-8 -*-
 import sys, os
 import tornado.ioloop
 import tornado.web
@@ -8,7 +9,12 @@ import logging.handlers
 import re
 from urllib import unquote
 
+import xml.etree.ElementTree as ET
+
 import config
+import pdb
+import hashlib
+import time
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -62,6 +68,50 @@ class LogHandler(tornado.web.RequestHandler):
 				self.write(unquote(_) + '<BR/>')
 
 
+class weixin(tornado.web.RequestHandler):
+
+	def get(self):
+		signature = self.get_argument('signature','')
+		timestamp = self.get_argument('timestamp','')
+        	nonce = self.get_argument('nonce','')
+        	echostr = self.get_argument('echostr','')
+		
+		token="liuzhiqiang"
+		list=[token,timestamp,nonce]
+        	list.sort()
+		sha1=hashlib.sha1()
+       	 	map(sha1.update,list)
+		hashcode=sha1.hexdigest()
+        	if hashcode == signature:
+            		self.write(echostr)
+        	else:
+            		self.write('shibai 403')
+
+	def post(self):
+		body = self.request.body
+		data = ET.fromstring(body)
+		tousername = data.find('ToUserName').text
+        	fromusername = data.find('FromUserName').text
+		createtime = data.find('CreateTime').text
+        	msgtype = data.find('MsgType').text
+        	content = data.find('Content').text
+        	msgid = data.find('MsgId').text
+		
+		print fromusername
+		if content.strip() in ('ls','pwd','w','uptime'):
+            		result = commands.getoutput(content)
+        	else:
+            		result = 'www.baidu.com'
+		textTpl = """<xml>
+            		<ToUserName><![CDATA[%s]]></ToUserName>
+            		<FromUserName><![CDATA[%s]]></FromUserName>
+            		<CreateTime>%s</CreateTime>
+            		<MsgType><![CDATA[%s]]></MsgType>
+            		<Content><![CDATA[%s]]></Content>
+            	</xml>"""
+        	out = textTpl % (fromusername, tousername, str(int(time.time())), msgtype, result)
+        	self.write(out)
+
 settings = {
 	"static_path": os.path.join(os.path.dirname(__file__), "static"),
 }
@@ -69,6 +119,7 @@ settings = {
 routes = [
 	(r"/", DefaultHandler),
 	(r"/wx/test", TestHandler),
+	(r"/wx/weixin", weixin),
 ]
 
 if config.Mode == 'DEBUG':
