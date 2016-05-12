@@ -101,7 +101,7 @@ class weixin(tornado.web.RequestHandler):
 		if content.strip() in ('ls','pwd','w','uptime'):
             		result = commands.getoutput(content)
         	else:
-            		result = 'www.baidu.com'
+            		result = '对不起我们正在成长'
 		textTpl = """<xml>
             		<ToUserName><![CDATA[%s]]></ToUserName>
             		<FromUserName><![CDATA[%s]]></FromUserName>
