@@ -15,9 +15,11 @@ import config
 import pdb
 import hashlib
 import time
+import urllib2
+import json
+import web
+print mystr.decode('utf-8').encode('gbk')
 
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 def deamon(chdir = False):
 	try:
@@ -85,33 +87,80 @@ class weixin(tornado.web.RequestHandler):
         	if hashcode == signature:
             		self.write(echostr)
         	else:
-            		self.write('shibai 403')
+ 
+           		self.write('shibai 4055555')
+	
 
 	def post(self):
 		body = self.request.body
-		data = ET.fromstring(body)
-		tousername = data.find('ToUserName').text
-        	fromusername = data.find('FromUserName').text
-		createtime = data.find('CreateTime').text
-        	msgtype = data.find('MsgType').text
-        	content = data.find('Content').text
-        	msgid = data.find('MsgId').text
-		
-		print fromusername
-		if content.strip() in ('ls','pwd','w','uptime'):
-            		result = commands.getoutput(content)
-        	else:
-            		result = '对不起我们正在成长'
-		textTpl = """<xml>
-            		<ToUserName><![CDATA[%s]]></ToUserName>
-            		<FromUserName><![CDATA[%s]]></FromUserName>
-            		<CreateTime>%s</CreateTime>
-            		<MsgType><![CDATA[%s]]></MsgType>
-            		<Content><![CDATA[%s]]></Content>
-            	</xml>"""
-        	out = textTpl % (fromusername, tousername, str(int(time.time())), msgtype, result)
-        	self.write(out)
+                data = ET.fromstring(body)
+                tousername = data.find('ToUserName').text
+                fromusername = data.find('FromUserName').text
+                createtime = data.find('CreateTime').text
+                msgtype = data.find('MsgType').text
+                content = data.find('Content').text
+                msgid = data.find('MsgId').text
+                print content
+                print fromusername
+                if content.strip() in ('ls','pwd','w','uptime'):
+                        result = commands.getoutput(content)
+                else:
+                        result = ="44444444444444444444444444"
+                textTpl = """<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime>%s</CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <Content><![CDATA[%s]]></Content>
+                </xml>"""
+                out = textTpl % (fromusername, tousername, str(int(time.time())), msgtype, result)
+                self.write(out)
 
+	
+	def token(requset):
+                url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s' % (
+                Config.AppID, Config.AppSecret)
+                result = urllib2.urlopen(url).read()
+                Config.access_token = json.loads(result).get('access_token')
+                print 'access_token===%s' % Config.access_token
+                return HttpResponse(result)
+
+	def createMenu(request):
+                url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=%s" % Config.access_token
+                data = {
+                        "button":[
+                                {
+                                        "type":"click",
+                                        "name":"111",
+                                        "key":"4444444444444444444444444444444"
+                                },
+                                {
+                                        "name":"000",
+                                        "sub_button":[
+                                        {
+                                                "type":"view",
+                                                "name":"222",
+                                                "url":"http://www.soso.com/"
+                                        },
+                                        {
+                                                "type":"view",
+                                                "name":"444",
+                                                "url":"http://www.baidu.com/"
+                                        }]
+                                }
+                        ]
+                }
+                req = urllib2.Request(url)
+                req.add_header('Content-Type', 'application/json')
+                req.add_header('encoding', 'utf-8')
+                response = urllib2.urlopen(req, json.dumps(data,ensure_ascii=False))
+                result = response.read()
+                return HttpResponse(result)
+
+
+		
+		
+		
 settings = {
 	"static_path": os.path.join(os.path.dirname(__file__), "static"),
 }
