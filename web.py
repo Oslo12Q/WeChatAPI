@@ -11,6 +11,8 @@ from urllib import unquote
 
 import xml.etree.ElementTree as ET
 
+
+
 import config
 import pdb
 import hashlib
@@ -18,7 +20,6 @@ import time
 import urllib2
 import json
 import web
-print mystr.decode('utf-8').encode('gbk')
 
 
 def deamon(chdir = False):
@@ -70,6 +71,8 @@ class LogHandler(tornado.web.RequestHandler):
 				self.write(unquote(_) + '<BR/>')
 
 
+	
+	
 class weixin(tornado.web.RequestHandler):
 
 	def get(self):
@@ -90,34 +93,58 @@ class weixin(tornado.web.RequestHandler):
  
            		self.write('shibai 4055555')
 	
-
+	def parse_request_xml(self,rootElem):
+        	msg = {}
+        	if rootElem.tag == 'xml':
+            		for child in rootElem:
+				msg[child.tag] = child.text
+		return msg
 	def post(self):
-		body = self.request.body
-                data = ET.fromstring(body)
-                tousername = data.find('ToUserName').text
-                fromusername = data.find('FromUserName').text
-                createtime = data.find('CreateTime').text
-                msgtype = data.find('MsgType').text
-                content = data.find('Content').text
-                msgid = data.find('MsgId').text
-                print content
-                print fromusername
-                if content.strip() in ('ls','pwd','w','uptime'):
-                        result = commands.getoutput(content)
-                else:
-                        result = ="44444444444444444444444444"
-                textTpl = """<xml>
+                body = self.request.body
+                msg = self.parse_request_xml(ET.fromstring(body))
+                MsgType = tornado.escape.utf8(msg.get("MsgType"))
+        	Content= tornado.escape.utf8(msg.get("Content"))
+        	FromUserName = tornado.escape.utf8(msg.get("FromUserName"))
+        	CreateTime = tornado.escape.utf8(msg.get("CreateTime"))
+        	ToUserName = tornado.escape.utf8(msg.get("ToUserName"))
+        	if MsgType == "event":
+			Content="44444444444444"
+		
+		if MsgType == "text":
+			Content=u"rrrrrrrrrrrrrrrrrrr中文".encoding('utf-8')
+		if MsgType == "image":
+			Content="tttttttttttttttttttt"
+		if MsgType == "voice":
+			Content="yyyyyyyyyyyyyyyyyyyyyyy"
+		if MsgType == "video":
+
+			Content="pppppppppppppppppp"
+		if MsgType == "shortvideo":
+			Content="xxxxxxxxxxxxxxxxxxx"
+		if MsgType == "location":
+
+			Content="wwwwwwwwwwwwwwwwwwwwwww"
+		if MsgType =="link":
+			Content="llllllllllllllllllllll"
+
+		if not Content:
+			Content="4333333333333333"
+
+
+                data = """<xml>
                         <ToUserName><![CDATA[%s]]></ToUserName>
                         <FromUserName><![CDATA[%s]]></FromUserName>
                         <CreateTime>%s</CreateTime>
                         <MsgType><![CDATA[%s]]></MsgType>
                         <Content><![CDATA[%s]]></Content>
-                </xml>"""
-                out = textTpl % (fromusername, tousername, str(int(time.time())), msgtype, result)
-                self.write(out)
-
+                </xml>""" % (FromUserName,ToUserName,int(time.time()),'text',Content)
+		self.write(data)
 	
+
+
+		
 	def token(requset):
+                pdb.set_trace()
                 url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s' % (
                 Config.AppID, Config.AppSecret)
                 result = urllib2.urlopen(url).read()
@@ -132,7 +159,7 @@ class weixin(tornado.web.RequestHandler):
                                 {
                                         "type":"click",
                                         "name":"111",
-                                        "key":"4444444444444444444444444444444"
+                                        "key":"100000010"
                                 },
                                 {
                                         "name":"000",
@@ -140,7 +167,7 @@ class weixin(tornado.web.RequestHandler):
                                         {
                                                 "type":"view",
                                                 "name":"222",
-                                                "url":"http://www.soso.com/"
+                                                "url":"http://user.qzone.qq.com/577142965"
                                         },
                                         {
                                                 "type":"view",
@@ -150,6 +177,8 @@ class weixin(tornado.web.RequestHandler):
                                 }
                         ]
                 }
+		
+		
                 req = urllib2.Request(url)
                 req.add_header('Content-Type', 'application/json')
                 req.add_header('encoding', 'utf-8')
@@ -157,9 +186,6 @@ class weixin(tornado.web.RequestHandler):
                 result = response.read()
                 return HttpResponse(result)
 
-
-		
-		
 		
 settings = {
 	"static_path": os.path.join(os.path.dirname(__file__), "static"),
